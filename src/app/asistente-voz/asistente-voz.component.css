@@ -1,21 +1,20 @@
-
 .chat-box {
-  background-color: #f9f9f9; /* Color de fondo del chat */
-  border-radius: 15px; /* Bordes redondeados */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra del cuadro de chat */
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 576px) {
   .chat-box {
-    max-height: 300px; /* Reduce la altura en pantallas pequeñas */
+    max-height: 300px;
   }
 }
 
 /* Estilo para los mensajes */
 .bg-primary {
-  background-color: #464646 !important; /* Color primario de Bootstrap */
+  background-color: #464646 !important;
 }
 
 .bg-light {
-  background-color: #e9ecef !important; /* Color de fondo claro */
+  background-color: #e9ecef !important;
 }

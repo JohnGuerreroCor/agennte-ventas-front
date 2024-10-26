@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 interface Message {
   sender: 'user' | 'assistant';
   content: string;
-  formattedContent?: SafeHtml; // Nuevo campo para HTML seguro
+  formattedContent?: SafeHtml;
 }
 
 @Component({
@@ -23,7 +23,7 @@ interface Message {
 export class AsistenteVozComponent
   implements OnInit, OnDestroy, AfterViewChecked
 {
-  @ViewChild('chatBox') private chatBox!: ElementRef; // Referencia al contenedor del chat
+  @ViewChild('chatBox') private chatBox!: ElementRef;
   transcript: string = 'Aquí aparecerá tu mensaje...';
   respuesta: string = 'Aquí aparecerá la respuesta...';
   messages: Message[] = [];
@@ -31,7 +31,7 @@ export class AsistenteVozComponent
   recognition: any;
   ocultar: boolean = true;
 
-  constructor(private sanitizer: DomSanitizer) {} // Inyecta DomSanitizer
+  constructor(private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
     // Configuración del WebSocket
@@ -85,7 +85,7 @@ export class AsistenteVozComponent
       });
       setTimeout(() => {
         window.location.reload();
-      }, 3000); // 5000 ms = 5 segundos
+      }, 3000);
     };
 
     // Configuración del reconocimiento de voz
@@ -120,13 +120,12 @@ export class AsistenteVozComponent
       }
     };
 
-    // Manejo de errores
     this.recognition.onerror = (event: any) =>
       console.error('Error en el reconocimiento de voz: ', event.error);
   }
 
   ngAfterViewChecked() {
-    this.scrollToBottom(); // Asegura el desplazamiento en cada ciclo de detección de cambios
+    this.scrollToBottom();
   }
 
   ngOnDestroy() {
@@ -141,16 +140,13 @@ export class AsistenteVozComponent
     }
   }
 
-  // Método para iniciar el reconocimiento de voz después de reproducir el sonido
   startRecognition() {
     this.ocultar = false;
-    // Crear un nuevo objeto de audio para reproducir el sonido
+
     const audio = new Audio('assets/telephone_call.mp3');
 
-    // Iniciar la reproducción
     audio.play();
 
-    // Detener la reproducción después de 5 segundos
     setTimeout(() => {
       audio.pause();
       audio.currentTime = 0;

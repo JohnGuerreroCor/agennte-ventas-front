@@ -36,7 +36,7 @@ estado_conversacion = {
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     global estado_conversacion
-    
+
     while True:
         try:
             mensaje = await websocket.receive_text()
@@ -87,7 +87,7 @@ async def websocket_endpoint(websocket: WebSocket):
            # Paso 6: Preguntar por el interés en un apartamento específico
             elif estado_conversacion["paso"] == 6:
                 if mensaje.upper() in ["OPCIÓN A", "OPCIÓN B", "OPCIÓN C"]:
-                    estado_conversacion["apartamento"] = mensaje  
+                    estado_conversacion["apartamento"] = mensaje
                     estado_conversacion["paso"] = 7
                     await websocket.send_text("Excelente elección.")
                 else:
@@ -96,36 +96,30 @@ async def websocket_endpoint(websocket: WebSocket):
           # Paso 7: Solicitar fecha de visita y proponer tres opciones de fecha
             elif estado_conversacion["paso"] == 7:
                 try:
-                    # Obtener la fecha de hoy
-                    hoy = datetime.now().date()
 
-                    # Mapeo de los meses en español
+                    hoy = datetime.now().date()
                     meses = [
                         "enero", "febrero", "marzo", "abril", "mayo", "junio",
                         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
                     ]
-
-                    # Generar tres opciones de fecha a partir de hoy
                     opciones_fecha = [
                         f"{(hoy + timedelta(days=i)).day} de {meses[(hoy + timedelta(days=i)).month - 1]} de {(hoy + timedelta(days=i)).year}"
                         for i in range(1, 4)
                     ]
-                    
-                    # Almacenar las opciones de fecha en el estado de la conversación
+
                     estado_conversacion["opciones_fecha"] = opciones_fecha
                     estado_conversacion["paso"] = 8
 
-                    # Enviar las opciones al usuario
                     opciones_texto = "\n".join([f"Opción {i+1}: {fecha}" for i, fecha in enumerate(opciones_fecha)])
                     await websocket.send_text(f"Por favor, selecciona una de las siguientes opciones de fecha para tu visita:\n{opciones_texto}")
-                    
+
                 except Exception as e:
                     await websocket.send_text("Ocurrió un error al generar las opciones de fecha. Inténtalo nuevamente.")
 
             # Paso 8: Recibir la opción de fecha seleccionada
             elif estado_conversacion["paso"] == 8:
                 try:
-                    fecha_opcion = int(mensaje.split()[-1])  # Suponiendo que el usuario responde con 'Opción 1', 'Opción 2', o 'Opción 3'
+                    fecha_opcion = int(mensaje.split()[-1])
                     if 1 <= fecha_opcion <= 3:
                         estado_conversacion["fecha_visita"] = estado_conversacion["opciones_fecha"][fecha_opcion - 1]
                         estado_conversacion["paso"] = 9
@@ -142,7 +136,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         await websocket.send_text("Por favor selecciona una opción válida (Opción 1, Opción 2 o Opción 3).")
                 except Exception as e:
                     await websocket.send_text("Ocurrió un error al procesar tu selección. Inténtalo nuevamente.")
-                    
+
             # Paso 9: Ofrecer ayuda adicional
             elif estado_conversacion["paso"] == 9:
                 if mensaje.lower() == "sí":
@@ -152,25 +146,22 @@ async def websocket_endpoint(websocket: WebSocket):
                     await websocket.send_text("¡Gracias por confiar en nosotros! Que tengas un excelente día.")
                     await websocket.close()
                 else:
-                    await websocket.send_text("Por favor responde 'sí' o 'no' si necesitas alguna otra asesoría.")        
+                    await websocket.send_text("Por favor responde 'sí' o 'no' si necesitas alguna otra asesoría.")
 
            # Paso 10: Responder a preguntas adicionales usando el modelo
             elif estado_conversacion["paso"] == 10:
                 despedidas = ["adiós", "hasta luego", "nos vemos", "gracias", "bye", "chau", "me despido"]
 
-                # Convertir el mensaje a minúsculas para una coincidencia de texto más sencilla
                 mensaje_normalizado = mensaje.lower().strip()
 
-                # Verificar si el mensaje contiene una despedida
                 if any(despedida in mensaje_normalizado for despedida in despedidas):
                     await websocket.send_text("Gracias por usar nuestro servicio. ¡Hasta pronto!")
                     await websocket.close()  # Cerrar la conexión WebSocket
                 else:
-                    # Interactuar con el agente si no es una despedida
                     respuesta_modelo = await interactuar_agente_conversacional(f"Responde de manera clara y educativa: {mensaje}")
                     await websocket.send_text(respuesta_modelo)
 
-        
+
         except Exception as e:
             await websocket.close()
 
