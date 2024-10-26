@@ -6,7 +6,7 @@ import re
 app = FastAPI()
 
 # Configura la clave de API de OpenAI
-openai.api_key = "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"
+openai.api_key = ""
 
 # Función para interactuar con el agente en tiempo real
 async def interactuar_agente_conversacional(mensaje):
