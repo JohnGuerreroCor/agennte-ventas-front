@@ -1,27 +1,34 @@
-# AgenteVentasFront
+# Agente de Ventas
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.10.
+![Python](https://logodownload.org/wp-content/uploads/2019/10/python-logo-1.png)
 
-## Development server
+Este proyecto es un **Agente de Ventas** desarrollado con **Angular 15** para el frontend, que se comunica con una API utilizando **WebSockets** implementada en **Python**. La API utiliza **FastAPI** y se sirve con **Uvicorn**. Además, se integran los modelos de **OpenAI** disponibles en [OpenAI Playground](https://platform.openai.com/playground/realtime) para mejorar la funcionalidad del agente.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Características
 
-## Code scaffolding
+- **Frontend**: Desarrollado en Angular 15.
+- **Backend**: API en Python con FastAPI y Uvicorn.
+- **WebSockets**: Comunicación en tiempo real entre el frontend y el backend.
+- **Integración con OpenAI**: Utiliza modelos de OpenAI para potenciar las capacidades del agente.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Estructura del Proyecto
 
-## Build
+- **/py**: Contiene la implementación en Python de la API. Aquí es donde se manejan las conexiones WebSocket y se integran los modelos de OpenAI.
+- **/src**: Contiene el código fuente del frontend en Angular.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Requisitos
 
-## Running unit tests
+Asegúrate de tener instalados los siguientes requisitos:
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- [Node.js](https://nodejs.org/) (versión 14 o superior)
+- [Python](https://www.python.org/) (versión 3.6 o superior)
+- [Uvicorn](https://www.uvicorn.org/) para el servidor FastAPI.
 
-## Running end-to-end tests
+## Instalación
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Frontend
 
-## Further help
+1. Clona el repositorio:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+   ```bash
+   git clone https://github.com/JohnGuerreroCor/agente-ventas-front.git
