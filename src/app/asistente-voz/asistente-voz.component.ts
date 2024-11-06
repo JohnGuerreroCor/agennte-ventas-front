@@ -30,65 +30,56 @@ export class AsistenteVozComponent
   socket!: WebSocket;
   recognition: any;
   ocultar: boolean = true;
+  isRecognitionActive: boolean = false;
+  isFirstRecognition: boolean = true;
+  isPlayingAudio: boolean = false;
 
   constructor(private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
-    // Configuración del WebSocket
-    this.socket = new WebSocket('ws://localhost:8000/ws/conversar');
-    //this.socket = new WebSocket("wss://s3svcvl8-8000.use2.devtunnels.ms/ws/conversar");
+    //this.socket = new WebSocket('ws://localhost:8000/ws/conversar');
+    this.socket = new WebSocket(
+      'wss://s3svcvl8-8000.use2.devtunnels.ms/ws/conversar'
+    );
 
     this.socket.onmessage = (event) => {
-      const assistantResponse = event.data;
+      const data = JSON.parse(event.data);
+      const assistantResponse = data.texto;
+      const audioBase64 = data.audio;
+
       this.respuesta = 'Respuesta del asistente: ' + assistantResponse;
 
-      // Convierte los saltos de línea en <br> y marca como HTML seguro
       const formattedResponse = this.sanitizer.bypassSecurityTrustHtml(
-        assistantResponse.replace(/\n/g, '<br>')
+        assistantResponse.replace(/\n/g, '<br><br>')
       );
 
-      // Agrega el mensaje del asistente al historial
       this.messages.push({
         sender: 'assistant',
         content: assistantResponse,
         formattedContent: formattedResponse,
       });
 
-      // Hace scroll al último mensaje
       this.scrollToBottom();
 
-      // Detener el reconocimiento de voz mientras el asistente habla
-      this.recognition.stop();
-
-      // Text-to-Speech
-      const speech = new SpeechSynthesisUtterance(assistantResponse);
-      window.speechSynthesis.speak(speech);
-
-      // Reanuda el reconocimiento de voz después de que el asistente termine de hablar
-      speech.onend = () => {
-        console.log(
-          'Asistente terminó de hablar, reiniciando reconocimiento de voz...'
-        );
-        this.recognition.start();
-      };
+      this.stopRecognition(); // Asegúrate de detener el reconocimiento antes de reproducir audio
+      this.playAudio(audioBase64);
     };
 
     this.socket.onopen = () => console.log('Conexión WebSocket abierta.');
-    this.socket.onclose = () => console.log('Conexión WebSocket cerrada.');
     this.socket.onclose = () => {
+      console.log('Conexión WebSocket cerrada.');
       this.ocultar = true;
       Swal.fire({
         title: 'Se ha finalizado la llamada',
         text: 'Gracias por comunicarte con nosotros.',
         icon: 'success',
-        confirmButtonText: 'Aceptar',
+        confirmButtonText: 'Cerrar',
       });
       setTimeout(() => {
         window.location.reload();
-      }, 3000);
+      }, 15000);
     };
 
-    // Configuración del reconocimiento de voz
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
@@ -97,27 +88,25 @@ export class AsistenteVozComponent
     this.recognition.interimResults = false;
     this.recognition.maxAlternatives = 1;
 
-    // Cuando se obtiene el resultado de la transcripción
     this.recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       this.transcript = 'Tu mensaje: ' + transcript;
 
-      // Agrega el mensaje del usuario al historial
       this.messages.push({ sender: 'user', content: transcript });
 
-      // Envía el texto transcrito al WebSocket
       this.socket.send(transcript);
 
-      // Hace scroll al último mensaje
       this.scrollToBottom();
     };
 
-    // Reinicia el reconocimiento automáticamente al finalizar
     this.recognition.onend = () => {
-      console.log('Reiniciando reconocimiento de voz...');
-      if (!window.speechSynthesis.speaking) {
-        this.recognition.start();
-      }
+      this.isRecognitionActive = false;
+      // Solo reinicia el reconocimiento si el audio no está en reproducción
+      setTimeout(() => {
+        if (!this.isRecognitionActive && !this.isPlayingAudio) {
+          this.startRecognition();
+        }
+      }, 1000);
     };
 
     this.recognition.onerror = (event: any) =>
@@ -129,33 +118,43 @@ export class AsistenteVozComponent
   }
 
   ngOnDestroy() {
-    // Cerrar el WebSocket cuando el componente se destruya
     if (this.socket) {
       this.socket.close();
     }
-
-    // Detiene el reconocimiento de voz si se está ejecutando
     if (this.recognition) {
-      this.recognition.stop();
+      this.stopRecognition();
     }
   }
 
   startRecognition() {
-    this.ocultar = false;
+    if (!this.isRecognitionActive && !this.isPlayingAudio) {
+      this.isRecognitionActive = true;
 
-    const audio = new Audio('assets/telephone_call.mp3');
+      if (this.isFirstRecognition) {
+        this.isFirstRecognition = false;
+        this.ocultar = false;
+        const audio = new Audio('assets/telephone_call.mp3');
+        audio.play();
 
-    audio.play();
-
-    setTimeout(() => {
-      audio.pause();
-      audio.currentTime = 0;
-      console.log('Sonido finalizado, iniciando reconocimiento de voz...');
-      this.recognition.start();
-    }, 5000);
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          console.log('Sonido finalizado, iniciando reconocimiento de voz...');
+          this.recognition.start();
+        }, 5000);
+      } else {
+        this.recognition.start();
+      }
+    }
   }
 
-  // Método para hacer scroll al último mensaje
+  private stopRecognition() {
+    if (this.isRecognitionActive) {
+      this.recognition.stop();
+      this.isRecognitionActive = false;
+    }
+  }
+
   private scrollToBottom(): void {
     try {
       this.chatBox.nativeElement.scrollTop =
@@ -163,5 +162,20 @@ export class AsistenteVozComponent
     } catch (err) {
       console.error('Error al hacer scroll: ', err);
     }
+  }
+
+  private playAudio(base64Audio: string) {
+    this.stopRecognition();
+    this.isPlayingAudio = true;
+    const audioContent = 'data:audio/mp3;base64,' + base64Audio;
+    const audio = new Audio(audioContent);
+    audio
+      .play()
+      .catch((error) => console.error('Error al reproducir audio:', error));
+
+    audio.onended = () => {
+      this.isPlayingAudio = false; // Marcar que el audio ha terminado
+      this.startRecognition(); // Reiniciar el reconocimiento solo después de que el audio termine
+    };
   }
 }

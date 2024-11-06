@@ -1,13 +1,31 @@
+<nav class="navbar bg-dark border-bottom border-body">
+  <div class="container-fluid">
+    <a class="navbar-brand text-white" href="#">
+      <img
+        src="https://lait.com.co/wp-content/uploads/2024/06/cropped-Variaciones-12-192x192.png"
+        alt="Logo"
+        width="30"
+        height="24"
+        class="d-inline-block align-text-top"
+      />
+      <strong>
+        LAIT Technology <br> Automatización de Llamadas</strong
+      >
+    </a>
+  </div>
+</nav>
 <div class="container mt-5">
-  <h1 class="text-center mb-4">Asistente de Bienes Raíces</h1>
-  <button
-    *ngIf="ocultar"
-    (click)="startRecognition()"
-    class="btn btn-primary mb-3"
-  >
-    <i class="fa-solid fa-phone-volume"></i> Llamar
-  </button>
-
+  <div class="row">
+    <div class="col text-end">
+      <button
+        *ngIf="ocultar"
+        (click)="startRecognition()"
+        class="btn btn-primary mb-3"
+      >
+        <i class="fa-solid fa-phone-volume"></i> Llamar
+      </button>
+    </div>
+  </div>
   <!-- Historial de mensajes-->
   <div
     #chatBox
@@ -34,19 +52,28 @@
               : 'bg-primary text-white'
           "
         >
+          <!-- Mensaje del usuario -->
           <p
-            class="p-3 rounded"
+            *ngIf="message.sender === 'user'"
+            class="p-3 bg-light rounded"
             style="
               border-radius: 10px;
               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             "
           >
-            <strong>{{
-              message.sender === "user" ? "Tú: " : "Asistente: "
-            }}</strong
-            >{{ message.content }}
-            <span *ngIf="message.sender !== 'user'">🤖</span>
+            <strong>Tú:</strong> {{ message.content }}
           </p>
+
+          <!-- Mensaje del asistente con contenido HTML seguro y estilo diferente -->
+          <p
+            *ngIf="message.sender !== 'user'"
+            class="p-3 bg-primary text-white rounded"
+            style="
+              border-radius: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            "
+            [innerHTML]="message.formattedContent"
+          ></p>
         </div>
       </div>
     </div>
