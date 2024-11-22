@@ -9,33 +9,46 @@
         class="d-inline-block align-text-top"
       />
       <strong>
-        LAIT Technology <br> Automatización de Llamadas</strong
+        LAIT Technology <br />
+        Automatización de Llamadas</strong
       >
     </a>
   </div>
 </nav>
-<div class="container mt-5">
+<div class="container">
+  <div #container class="canvas-container">
+    <canvas></canvas>
+  </div>
   <div class="row">
-    <div class="col text-end">
-      <button
-        *ngIf="ocultar"
-        (click)="startRecognition()"
-        class="btn btn-primary mb-3"
-      >
+    <div class="col text-center text-white">
+      <p>
+        <strong
+          ><div class="spinner-grow text-success spinner-grow-sm" role="status">
+            <span class="sr-only"></span>
+          </div>
+          Daniela</strong
+        >
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col text-center">
+      <button *ngIf="ocultar" (click)="llamar()" class="btn btn-success mb-3">
         <i class="fa-solid fa-phone-volume"></i> Llamar
       </button>
     </div>
   </div>
+  <hr style="color: white;">
   <!-- Historial de mensajes-->
   <div
     #chatBox
-    class="mt-3 chat-box"
+    class="mt-3 mb-5 chat-box"
     style="
       max-height: 400px;
       overflow-y: auto;
-      border: 1px solid #ccc;
+      border: 1px solid #000000;
       border-radius: 15px;
-      background: #f9f9f9;
+      background: #000000;
       padding: 15px;
     "
   >

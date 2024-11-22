@@ -1,0 +1,27 @@
+body{
+  background-color: black;
+}
+
+.text-center.flex.items-center.justify-center.text-sm.gap-2 {
+  display: none;
+}
+/* Estilos para pantallas de escritorio */
+.responsive-div {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 40px;
+  background-color: #000000;
+  z-index: 2;
+}
+
+/* Estilos para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+  .responsive-div {
+    bottom: 12%; /* Cambiar la posición inferior para móviles */
+    width: 180px; /* Ajustar el ancho para móviles */
+    height: 40px;
+  }
+}
