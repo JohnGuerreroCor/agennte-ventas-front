@@ -64,10 +64,11 @@ export class AsistenteVozComponent
 
   llamar(){
     this.ocultar = false;
-    this.socket = new WebSocket('ws://localhost:8000/ws/conversar');
+    this.socket = new WebSocket('wss://agente-voz-production.up.railway.app/ws/conversar');
    /*  this.socket = new WebSocket(
       'wss://s3svcvl8-8000.use2.devtunnels.ms/ws/conversar'
     ); */
+    //ws://localhost:8000/ws/conversar
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);

@@ -6,7 +6,7 @@ import { VisualizerComponent } from './components/threejs-audio-visualizer/three
 import { DialogflowComponent } from './components/dialogflow/dialogflow.component';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'agente' },
+  { path: '', pathMatch: 'full', redirectTo: 'agente-ventas' },
   { path: 'agente-ventas', component: AsistenteVozComponent },
   { path: 'agente', component: AgenteComponent },
   { path: 'visualizador', component: VisualizerComponent },
