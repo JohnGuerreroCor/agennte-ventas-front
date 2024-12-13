@@ -7,6 +7,7 @@ import { AgenteComponent } from './components/agente/agente.component';
 import { AppRoutingModule } from './app-routing.module';
 import { VisualizerComponent } from './components/threejs-audio-visualizer/threejs-audio-visualizer.component';
 import { DialogflowComponent } from './components/dialogflow/dialogflow.component';
+import { SwarmComponent } from './components/swarm/swarm.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { DialogflowComponent } from './components/dialogflow/dialogflow.componen
     AsistenteVozComponent,
     AgenteComponent,
     VisualizerComponent,
-    DialogflowComponent
+    DialogflowComponent,
+    SwarmComponent
   ],
   imports: [
     BrowserModule,

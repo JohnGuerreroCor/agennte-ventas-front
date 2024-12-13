@@ -22,13 +22,11 @@ interface Message {
 }
 
 @Component({
-  selector: 'app-asistente-voz',
-  templateUrl: './asistente-voz.component.html',
-  styleUrls: ['./asistente-voz.component.css'],
+  selector: 'app-swarm',
+  templateUrl: './swarm.component.html',
+  styleUrls: ['./swarm.component.css'],
 })
-export class AsistenteVozComponent
-  implements OnInit, OnDestroy, AfterViewChecked
-{
+export class SwarmComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('chatBox') private chatBox!: ElementRef;
   transcript: string = 'Aquí aparecerá tu mensaje...';
   respuesta: string = 'Aquí aparecerá la respuesta...';
@@ -40,11 +38,16 @@ export class AsistenteVozComponent
   isFirstRecognition: boolean = true;
   isPlayingAudio: boolean = false;
 
-  private renderer!: THREE.WebGLRenderer;
-  private scene!: THREE.Scene;
-  private camera!: THREE.PerspectiveCamera;
-  private composer!: EffectComposer;
-  private uniforms!: { [key: string]: { value: any } };
+  private rendererOne!: THREE.WebGLRenderer;
+  private rendererTwo!: THREE.WebGLRenderer;
+  private sceneOne!: THREE.Scene;
+  private sceneTwo!: THREE.Scene;
+  private cameraOne!: THREE.PerspectiveCamera;
+  private cameraTwo!: THREE.PerspectiveCamera;
+  private composerOne!: EffectComposer;
+  private composerTwo!: EffectComposer;
+  private uniformsOne!: { [key: string]: { value: any } };
+  private uniformsTwo!: { [key: string]: { value: any } };
   private analyser!: THREE.AudioAnalyser;
   private clock = new THREE.Clock();
   private mouseX = 0;
@@ -57,24 +60,26 @@ export class AsistenteVozComponent
   ) {}
 
   ngOnInit() {
-    this.initThree();
-    this.addMesh();
-    this.animate();
+    this.initThreeOne();
+    this.initThreeTwo();
+    this.addMeshOne();
+    this.addMeshTwo();
+    this.animateOne();
+    this.animateTwo();
   }
 
   llamar() {
     this.ocultar = false;
-    this.socket = new WebSocket('wss://agente-voz-production.up.railway.app/ws/conversar');
+    this.socket = new WebSocket(
+      'wss://agente-voz-production.up.railway.app/ws/conversar'
+    );
     /*  this.socket = new WebSocket(
       'wss://s3svcvl8-8000.use2.devtunnels.ms/ws/conversar'
     ); */
-    //this.socket = new WebSocket('ws://localhost:8000/ws/conversar');
+    //ws://localhost:8000/ws/conversar
 
     this.socket.onmessage = (event) => {
-      console.log(event.data);
       const data = JSON.parse(event.data);
-      console.log('Texto:', data.texto);
-      console.log('Audio:', data.audio);
       const assistantResponse = data.texto;
       const audioBase64 = data.audio;
 
@@ -93,21 +98,11 @@ export class AsistenteVozComponent
       this.scrollToBottom();
 
       this.stopRecognition(); // Asegúrate de detener el reconocimiento antes de reproducir audio
-      console.log(audioBase64);
-
       this.playAudio(audioBase64);
       this.initAudio(audioBase64);
     };
 
-    this.socket.onopen = () => {
-      console.log('Conexión WebSocket abierta.');
-
-      // Configurar temporizador de 3 minutos (180,000 ms)
-      setTimeout(() => {
-        this.finalizarLlamada();
-      }, 300000); // 3 minutos
-    };
-
+    this.socket.onopen = () => console.log('Conexión WebSocket abierta.');
     this.socket.onclose = () => {
       console.log('Conexión WebSocket cerrada.');
       Swal.fire({
@@ -118,7 +113,7 @@ export class AsistenteVozComponent
       });
       setTimeout(() => {
         window.location.reload();
-      }, 5000);
+      }, 15000);
     };
 
     const SpeechRecognition =
@@ -134,9 +129,6 @@ export class AsistenteVozComponent
       this.transcript = 'Tu mensaje: ' + transcript;
 
       this.messages.push({ sender: 'user', content: transcript });
-
-      console.log('transcript',transcript);
-
 
       this.socket.send(transcript);
 
@@ -156,28 +148,6 @@ export class AsistenteVozComponent
 
   ngAfterViewChecked() {
     this.scrollToBottom();
-  }
-
-  private finalizarLlamada() {
-    if (this.socket) {
-      this.socket.close(); // Cerrar el WebSocket
-    }
-    if (this.recognition) {
-      this.stopRecognition(); // Detener el reconocimiento de voz
-    }
-
-    // Mostrar mensaje al usuario
-    Swal.fire({
-      title: 'Llamada finalizada',
-      text: 'El tiempo máximo de la llamada ha sido alcanzado.',
-      icon: 'info',
-      confirmButtonText: 'Aceptar',
-    });
-
-    // Reiniciar o redirigir según sea necesario
-    setTimeout(() => {
-      window.location.reload();
-    }, 5000); // Opcional, recargar página tras 5 segundos
   }
 
   ngOnDestroy() {
@@ -268,9 +238,6 @@ export class AsistenteVozComponent
   }
 
   private base64ToBlob(base64: string, mimeType: string): Blob {
-    const sanitizeBase64 = (base64: string): string => {
-      return base64.replace(/[^A-Za-z0-9+/=]/g, '');
-    };
     const byteCharacters = atob(base64);
     const byteNumbers = Array.from(byteCharacters, (char) =>
       char.charCodeAt(0)
@@ -279,25 +246,25 @@ export class AsistenteVozComponent
     return new Blob([byteArray], { type: mimeType });
   }
 
-  private initThree() {
+  private initThreeOne() {
     const container = this.el.nativeElement;
 
     // Configurar el renderizador con un canvas existente
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: container.querySelector('canvas') || undefined,
+    this.rendererOne = new THREE.WebGLRenderer({
+      canvas: container.querySelector('.canvasOne') || undefined,
       antialias: true,
     });
-    this.renderer.setSize(300, 300);
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.rendererOne.setSize(300, 300);
+    this.rendererOne.outputColorSpace = THREE.SRGBColorSpace;
 
     // Escena y cámara
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, 400 / 400, 0.1, 1000);
-    this.camera.position.set(0, -2, 14);
-    this.camera.lookAt(0, 0, 0);
+    this.sceneOne = new THREE.Scene();
+    this.cameraOne = new THREE.PerspectiveCamera(45, 400 / 400, 0.1, 1000);
+    this.cameraOne.position.set(0, -2, 14);
+    this.cameraOne.lookAt(0, 0, 0);
 
     // Postprocesado
-    const renderPass = new RenderPass(this.scene, this.camera);
+    const renderPass = new RenderPass(this.sceneOne, this.cameraOne);
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(400, 400),
       0.18,
@@ -305,14 +272,45 @@ export class AsistenteVozComponent
       0.4
     );
 
-    this.composer = new EffectComposer(this.renderer);
-    this.composer.addPass(renderPass);
-    this.composer.addPass(bloomPass);
+    this.composerOne = new EffectComposer(this.rendererOne);
+    this.composerOne.addPass(renderPass);
+    this.composerOne.addPass(bloomPass);
   }
 
-  private addMesh() {
+  private initThreeTwo() {
+    const container = this.el.nativeElement;
+
+    // Configurar el renderizador con un canvas existente
+    this.rendererTwo = new THREE.WebGLRenderer({
+      canvas: container.querySelector('.canvasTwo') || undefined,
+      antialias: true,
+    });
+    this.rendererTwo.setSize(300, 300);
+    this.rendererTwo.outputColorSpace = THREE.SRGBColorSpace;
+
+    // Escena y cámara
+    this.sceneTwo = new THREE.Scene();
+    this.cameraTwo = new THREE.PerspectiveCamera(45, 400 / 400, 0.1, 1000);
+    this.cameraTwo.position.set(0, -2, 14);
+    this.cameraTwo.lookAt(0, 0, 0);
+
+    // Postprocesado
+    const renderPass = new RenderPass(this.sceneTwo, this.cameraTwo);
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(400, 400),
+      0.18,
+      0.23,
+      0.4
+    );
+
+    this.composerTwo = new EffectComposer(this.rendererTwo);
+    this.composerTwo.addPass(renderPass);
+    this.composerTwo.addPass(bloomPass);
+  }
+
+  private addMeshOne() {
     // Configuración de uniforms
-    this.uniforms = {
+    this.uniformsOne = {
       u_time: { value: 0.0 },
       u_frequency: { value: 0.0 },
       u_red: { value: 0.1 },
@@ -323,7 +321,7 @@ export class AsistenteVozComponent
 
     // Material con shaders
     const material = new THREE.ShaderMaterial({
-      uniforms: this.uniforms,
+      uniforms: this.uniformsOne,
       vertexShader: `
         uniform float u_time;
         uniform float u_frequency;
@@ -443,12 +441,149 @@ export class AsistenteVozComponent
     // Geometría
     const geometry = new THREE.IcosahedronGeometry(4, 10);
     const points = new THREE.Points(geometry, material);
-    this.scene.add(points);
+    this.sceneOne.add(points);
+  }
+
+  private addMeshTwo() {
+    // Configuración de uniforms
+    this.uniformsTwo = {
+      u_time: { value: 0.0 },
+      u_frequency: { value: 0.0 },
+      u_red: { value: 1.0 }, // Máximo rojo
+      u_green: { value: 1.0 }, // Máximo verde
+      u_blue: { value: 0.0 }, // Azul apagado
+      u_pointSize: { value: 3.0 }, // Tamaño de los puntos
+    };
+
+    // Material con shaders
+    const material = new THREE.ShaderMaterial({
+      uniforms: this.uniformsTwo,
+      vertexShader: `
+        uniform float u_time;
+        uniform float u_frequency;
+        uniform float u_pointSize;
+
+        vec3 mod289(vec3 x) {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+
+        vec4 mod289(vec4 x) {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+
+        vec4 permute(vec4 x) {
+          return mod289(((x*34.0)+10.0)*x);
+        }
+
+        vec4 taylorInvSqrt(vec4 r) {
+          return 1.79284291400159 - 0.85373472095314 * r;
+        }
+
+        vec3 fade(vec3 t) {
+          return t*t*t*(t*(t*6.0-15.0)+10.0);
+        }
+
+        float pnoise(vec3 P, vec3 rep) {
+          vec3 Pi0 = mod(floor(P), rep);
+          vec3 Pi1 = mod(Pi0 + vec3(1.0), rep);
+          Pi0 = mod289(Pi0);
+          Pi1 = mod289(Pi1);
+          vec3 Pf0 = fract(P);
+          vec3 Pf1 = Pf0 - vec3(1.0);
+          vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+          vec4 iy = vec4(Pi0.yy, Pi1.yy);
+          vec4 iz0 = Pi0.zzzz;
+          vec4 iz1 = Pi1.zzzz;
+
+          vec4 ixy = permute(permute(ix) + iy);
+          vec4 ixy0 = permute(ixy + iz0);
+          vec4 ixy1 = permute(ixy + iz1);
+
+          vec4 gx0 = ixy0 * (1.0 / 7.0);
+          vec4 gy0 = fract(floor(gx0) * (1.0 / 7.0)) - 0.5;
+          gx0 = fract(gx0);
+          vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+          vec4 sz0 = step(gz0, vec4(0.0));
+          gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+          gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+          vec4 gx1 = ixy1 * (1.0 / 7.0);
+          vec4 gy1 = fract(floor(gx1) * (1.0 / 7.0)) - 0.5;
+          gx1 = fract(gx1);
+          vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+          vec4 sz1 = step(gz1, vec4(0.0));
+          gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+          gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+          vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
+          vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+          vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
+          vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+          vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
+          vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
+          vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
+          vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+
+          vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+          g000 *= norm0.x;
+          g010 *= norm0.y;
+          g100 *= norm0.z;
+          g110 *= norm0.w;
+          vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+          g001 *= norm1.x;
+          g011 *= norm1.y;
+          g101 *= norm1.z;
+          g111 *= norm1.w;
+
+          float n000 = dot(g000, Pf0);
+          float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+          float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+          float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+          float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+          float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+          float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+          float n111 = dot(g111, Pf1);
+
+          vec3 fade_xyz = fade(Pf0);
+          vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+          vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+          float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
+          return 2.2 * n_xyz;
+        }
+
+        void main() {
+            float noise = 3.0 * pnoise(position + u_time, vec3(10.0));
+            float displacement = (u_frequency / 30.0) * (noise / 10.0);
+            vec3 newPosition = position + normal * displacement;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+
+            // Configuración del tamaño del punto
+            gl_PointSize = u_pointSize;
+        }`,
+      fragmentShader: `
+        uniform float u_red;
+        uniform float u_green;
+        uniform float u_blue;
+
+        void main() {
+            // Efecto circular para los puntos
+            vec2 uv = gl_PointCoord.xy - 0.5;
+            if (dot(uv, uv) > 0.25) discard;
+
+            gl_FragColor = vec4(u_red, u_green, u_blue, 1.0);
+        }`,
+    });
+
+    // Geometría
+    const geometry = new THREE.IcosahedronGeometry(4, 10);
+    const points = new THREE.Points(geometry, material);
+    this.sceneTwo.add(points);
   }
 
   private initAudio(base64Audio: string) {
     const listener = new THREE.AudioListener();
-    this.camera.add(listener);
+    this.cameraOne.add(listener);
+    this.cameraTwo.add(listener);
 
     // Cargar un archivo de audio
     const audioLoader = new THREE.AudioLoader();
@@ -468,23 +603,48 @@ export class AsistenteVozComponent
     });
   }
 
-  private animate() {
+  private animateOne() {
     this.ngZone.runOutsideAngular(() => {
       const render = () => {
         // Actualiza valores de uniform
-        this.uniforms['u_time'].value = this.clock.getElapsedTime();
+        this.uniformsOne['u_time'].value = this.clock.getElapsedTime();
         if (this.analyser) {
-          this.uniforms['u_frequency'].value =
+          this.uniformsOne['u_frequency'].value =
             this.analyser.getAverageFrequency();
         }
 
         // Interacción con mouse
-        this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.05;
-        this.camera.position.y +=
-          (-this.mouseY - this.camera.position.y) * 0.05;
-        this.camera.lookAt(this.scene.position);
+        this.cameraOne.position.x +=
+          (this.mouseX - this.cameraOne.position.x) * 0.05;
+        this.cameraOne.position.y +=
+          (-this.mouseY - this.cameraOne.position.y) * 0.05;
+        this.cameraOne.lookAt(this.sceneOne.position);
 
-        this.composer.render();
+        this.composerOne.render();
+        requestAnimationFrame(render);
+      };
+      render();
+    });
+  }
+
+  private animateTwo() {
+    this.ngZone.runOutsideAngular(() => {
+      const render = () => {
+        // Actualiza valores de uniform
+        this.uniformsTwo['u_time'].value = this.clock.getElapsedTime();
+        if (this.analyser) {
+          this.uniformsTwo['u_frequency'].value =
+            this.analyser.getAverageFrequency();
+        }
+
+        // Interacción con mouse
+        this.cameraTwo.position.x +=
+          (this.mouseX - this.cameraTwo.position.x) * 0.05;
+        this.cameraTwo.position.y +=
+          (-this.mouseY - this.cameraTwo.position.y) * 0.05;
+        this.cameraTwo.lookAt(this.sceneTwo.position);
+
+        this.composerTwo.render();
         requestAnimationFrame(render);
       };
       render();
@@ -493,10 +653,14 @@ export class AsistenteVozComponent
 
   @HostListener('window:resize')
   onResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.composer.setSize(window.innerWidth, window.innerHeight);
+    this.cameraOne.aspect = window.innerWidth / window.innerHeight;
+    this.cameraOne.updateProjectionMatrix();
+    this.cameraTwo.aspect = window.innerWidth / window.innerHeight;
+    this.cameraTwo.updateProjectionMatrix();
+    this.rendererOne.setSize(window.innerWidth, window.innerHeight);
+    this.rendererTwo.setSize(window.innerWidth, window.innerHeight);
+    this.composerOne.setSize(window.innerWidth, window.innerHeight);
+    this.composerTwo.setSize(window.innerWidth, window.innerHeight);
   }
 
   @HostListener('mousemove', ['$event'])
