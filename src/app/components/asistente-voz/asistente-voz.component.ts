@@ -60,21 +60,37 @@ export class AsistenteVozComponent
     this.initThree();
     this.addMesh();
     this.animate();
+    /* this.messages.push(
+      {
+        sender: 'user',
+        content: '¿Cuál es el clima hoy?',
+        formattedContent: '<p>¿Cuál es el clima hoy?</p>' as SafeHtml,
+      },
+      {
+        sender: 'assistant',
+        content: 'El clima es soleado con 25°C.',
+        formattedContent: '<p>El clima es soleado con 25°C.</p>' as SafeHtml,
+      },
+      {
+        sender: 'user',
+        content: 'Gracias.',
+        formattedContent: '<p>Gracias.</p>' as SafeHtml,
+      }
+    ); */
   }
 
   llamar() {
     this.ocultar = false;
-    this.socket = new WebSocket('wss://agente-voz-production.up.railway.app/ws/conversar');
+    this.socket = new WebSocket(
+      'wss://agente-voz-production.up.railway.app/ws/conversar'
+    );
     /*  this.socket = new WebSocket(
       'wss://s3svcvl8-8000.use2.devtunnels.ms/ws/conversar'
     ); */
     //this.socket = new WebSocket('ws://localhost:8000/ws/conversar');
 
     this.socket.onmessage = (event) => {
-      console.log(event.data);
       const data = JSON.parse(event.data);
-      console.log('Texto:', data.texto);
-      console.log('Audio:', data.audio);
       const assistantResponse = data.texto;
       const audioBase64 = data.audio;
 
@@ -93,7 +109,6 @@ export class AsistenteVozComponent
       this.scrollToBottom();
 
       this.stopRecognition(); // Asegúrate de detener el reconocimiento antes de reproducir audio
-      console.log(audioBase64);
 
       this.playAudio(audioBase64);
       this.initAudio(audioBase64);
@@ -134,9 +149,6 @@ export class AsistenteVozComponent
       this.transcript = 'Tu mensaje: ' + transcript;
 
       this.messages.push({ sender: 'user', content: transcript });
-
-      console.log('transcript',transcript);
-
 
       this.socket.send(transcript);
 

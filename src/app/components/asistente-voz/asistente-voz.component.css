@@ -1,31 +1,54 @@
-.chat-box {
-  background-color: #f9f9f9;
-  border-radius: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
 @media (max-width: 576px) {
   .chat-box {
     max-height: 200px;
   }
 }
 
-/* Estilo para los mensajes */
-.bg-primary {
-  background-color: #464646 !important;
+.chat-box {
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 10px;
 }
 
+/* Mensajes del usuario */
 .bg-light {
-  background-color: #e9efe9 !important;
+  background-color: #d4edda !important; /* Verde claro */
+  border-radius: 20px 20px 20px 0; /* Redondeado en esquinas específicas */
+  padding: 10px 15px;
+  max-width: 70%; /* Limitar ancho del mensaje */
+  word-wrap: break-word;
+  color: #155724; /* Texto verde oscuro */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
+/* Mensajes del asistente */
+.bg-primary {
+  background-color: #155724 !important; /* Verde oscuro */
+  border-radius: 20px 20px 0 20px; /* Redondeado en esquinas específicas */
+  padding: 10px 15px;
+  max-width: 70%;
+  color: #ffffff; /* Texto blanco */
+  word-wrap: break-word;
+  margin-left: auto; /* Alinear a la derecha */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Sombra para los mensajes */
+.chat-message {
+  margin: 5px 0; /* Espaciado entre mensajes */
+}
+
 
 .canvas-container {
   display: flex;
   justify-content: center; /* Centrado horizontal */
-  align-items: center;    /* Centrado vertical */
+  align-items: center; /* Centrado vertical */
   position: relative;
   width: 100%;
 }
 canvas {
   display: block;
+  width: 300px !important;
+  height: 300px !important;
 }

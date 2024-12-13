@@ -51,37 +51,24 @@
   >
     <div
       *ngFor="let message of messages"
-      class="mb-3 animate__animated animate__fadeIn"
+      class="chat-message animate__animated animate__fadeIn"
     >
       <div [class]="message.sender === 'user' ? 'text-start' : 'text-end'">
         <div
-          class="d-inline-block"
           [class]="
             message.sender === 'user'
-              ? 'bg-light text-dark'
-              : 'bg-primary text-white'
+              ? 'bg-light text-dark mb-3'
+              : 'bg-primary text-white mb-3'
           "
         >
           <!-- Mensaje del usuario -->
-          <p
-            *ngIf="message.sender === 'user'"
-            class="p-3 bg-light rounded"
-            style="
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            "
-          >
+          <p *ngIf="message.sender === 'user'" class="m-0">
             <strong>Tú:</strong> {{ message.content }}
           </p>
-
-          <!-- Mensaje del asistente con contenido HTML seguro y estilo diferente -->
+          <!-- Mensaje del asistente -->
           <p
             *ngIf="message.sender !== 'user'"
-            class="p-3 bg-primary text-white rounded"
-            style="
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            "
+            class="m-0"
             [innerHTML]="message.formattedContent"
           ></p>
         </div>
