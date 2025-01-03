@@ -39,7 +39,6 @@
   margin: 5px 0; /* Espaciado entre mensajes */
 }
 
-
 .canvas-container {
   display: flex;
   justify-content: center; /* Centrado horizontal */
@@ -49,6 +48,6 @@
 }
 canvas {
   display: block;
-  width: 300px !important;
-  height: 300px !important;
+  width: 200px !important;
+  height: 200px !important;
 }
